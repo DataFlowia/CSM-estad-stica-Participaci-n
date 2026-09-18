@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Ex Alumnos San Mateo - Reencuentro 2026</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- JSConfetti for celebratory interactions -->
+  <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    
+    * {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Animated Cyan-Purple Gradient Background */
+    body {
+      background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #083344, #1e1035);
+      background-size: 400% 400%;
+      animation: gradientBG 18s ease infinite;
+      color: #f8fafc;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Spiderweb Canvas Positioning */
+    #spiderweb-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Glassmorphic Cards */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .glass-card-interactive {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .glass-card-interactive:hover {
+      transform: translateY(-4px);
+      border-color: rgba(6, 182, 212, 0.4);
+      box-shadow: 0 12px 40px 0 rgba(6, 182, 212, 0.25);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(168, 85, 247, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(6, 182, 212, 0.7);
+    }
+
+    /* Neon Text Effect */
+    .text-glow-cyan {
+      text-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+    }
+    .text-glow-purple {
+      text-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+    }
+  </style>
+</head>
+<body class="relative text-slate-100 antialiased selection:bg-cyan-500 selection:text-white">
+
+  <canvas id="spiderweb-canvas"></canvas>
+
+  <!-- Main Content Wrapper -->
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+    <header class="glass-card rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row justify-between items-center gap-6 border-cyan-500/30">
+      <div class="space-y-2 text-center lg:text-left">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs font-semibold tracking-wide uppercase">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          CECOSAM • Osorno, Chile
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-teal-200 to-purple-400">
+          Comunidad Ex Alumnos San Mateo
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base max-w-2xl">
+          Análisis de datos del chat de WhatsApp, métricas de participación y control de asistencia para la Misa y Cóctel de Refundación.
+        </p>
+      </div>
+
+      <!-- Live Event Countdown Card -->
+      <div class="bg-slate-900/80 border border-purple-500/30 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center min-w-[280px] shadow-lg shadow-purple-900/20">
+        <div class="text-xs uppercase tracking-wider font-semibold text-purple-300 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check text-cyan-400"></i>
+          Cuenta Regresiva Evento (26 Sept)
+        </div>
+        <div class="flex items-center gap-3 text-center" id="countdown-timer">
+          <div class="flex flex-col">
+            <span class="text-2xl font-black text-cyan-300" id="cd-days">00</span>
+            <span class="text-[10px] text-slate-400 uppercase">Días</span>
+          </div>
+          <span class="text-xl font-bold text-purple-400">:</span>
+          <div class="flex flex-col">
+            <span class="text-2xl font-black text-cyan-300" id="cd-hours">00</span>
+            <span class="text-[10px] text-slate-400 uppercase">Horas</span>
+          </div>
+          <span class="text-xl font-bold text-purple-400">:</span>
+          <div class="flex flex-col">
+            <span class="text-2xl font-black text-cyan-300" id="cd-mins">00</span>
+            <span class="text-[10px] text-slate-400 uppercase">Min</span>
+          </div>
+          <span class="text-xl font-bold text-purple-400">:</span>
+          <div class="flex flex-col">
+            <span class="text-2xl font-black text-cyan-300" id="cd-secs">00</span>
+            <span class="text-[10px] text-slate-400 uppercase">Seg</span>
+          </div>
+        </div>
+        <div class="mt-2 text-xs text-slate-400">
+          <i class="fa-solid fa-clock text-amber-400 mr-1"></i> 18:00 hrs • Col. San Mateo
+        </div>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <!-- KPI 1 -->
+      <div class="glass-card glass-card-interactive rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-cyan-400">
+        <div class="flex justify-between items-start text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase">Total Histórico</span>
+          <i class="fa-solid fa-users text-cyan-400"></i>
+        </div>
+        <div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white">120+</div>
+          <div class="text-[11px] text-cyan-300 mt-1">Registrados en chat</div>
+        </div>
+      </div>
+
+      <!-- KPI 2 -->
+      <div class="glass-card glass-card-interactive rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-emerald-400">
+        <div class="flex justify-between items-start text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase">Activos Hoy</span>
+          <i class="fa-solid fa-user-check text-emerald-400"></i>
+        </div>
+        <div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white">~110</div>
+          <div class="text-[11px] text-emerald-300 mt-1">Permanecen en grupo</div>
+        </div>
+      </div>
+
+      <!-- KPI 3 -->
+      <div class="glass-card glass-card-interactive rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-purple-400">
+        <div class="flex justify-between items-start text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase">Confirmados Chat</span>
+          <i class="fa-solid fa-circle-check text-purple-400"></i>
+        </div>
+        <div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white">8</div>
+          <div class="text-[11px] text-purple-300 mt-1">+ Coordinadores base</div>
+        </div>
+      </div>
+
+      <!-- KPI 4 -->
+      <div class="glass-card glass-card-interactive rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-amber-400">
+        <div class="flex justify-between items-start text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase">Proyección Total</span>
+          <i class="fa-solid fa-wine-glass text-amber-400"></i>
+        </div>
+        <div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white">13 - 15</div>
+          <div class="text-[11px] text-amber-300 mt-1">Incluye Formularios</div>
+        </div>
+      </div>
+
+      <!-- KPI 5 -->
+      <div class="glass-card glass-card-interactive rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-rose-400">
+        <div class="flex justify-between items-start text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase">Salidas / Bajas</span>
+          <i class="fa-solid fa-user-minus text-rose-400"></i>
+        </div>
+        <div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white">10</div>
+          <div class="text-[11px] text-rose-300 mt-1">Ex-integrantes</div>
+        </div>
+      </div>
+
+      <!-- KPI 6 -->
+      <div class="glass-card glass-card-interactive rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-indigo-400">
+        <div class="flex justify-between items-start text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase">Rango Épocas</span>
+          <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+        </div>
+        <div>
+          <div class="text-xl sm:text-2xl font-extrabold text-white">1972-2020</div>
+          <div class="text-[11px] text-indigo-300 mt-1">48 años de historia</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Chart 1: Generational Distribution -->
+      <div class="glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-lg text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-cyan-400"></i>
+              Composición Generacional
+            </h3>
+            <p class="text-xs text-slate-400">Distribución de participantes identificados</p>
+          </div>
+        </div>
+        <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+          <canvas id="generationsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Attendance Status Breakdown -->
+      <div class="glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-lg text-white flex items-center gap-2">
+              <i class="fa-solid fa-clipboard-user text-purple-400"></i>
+              Estado de Asistencia Evento
+            </h3>
+            <p class="text-xs text-slate-400">Misa y Cóctel de Aniversario (26 Sept)</p>
+          </div>
+        </div>
+        <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+          <canvas id="attendanceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 3: Activity Milestones Timeline -->
+      <div class="glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-lg text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-amber-400"></i>
+              Dinámica de Crecimiento Chat
+            </h3>
+            <p class="text-xs text-slate-400">Hitórum de altas y dinamismo Septiembre 2026</p>
+          </div>
+        </div>
+        <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+          <canvas id="activityChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="glass-card rounded-3xl p-6 space-y-6">
+      
+      <!-- Tab Navigation & Search Bar -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-700/60 pb-4">
+        <!-- Navigation Buttons -->
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <button onclick="switchTab('tab-confirmados')" id="btn-confirmados" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
+            <i class="fa-solid fa-check-circle"></i>
+            Confirmados (8)
+          </button>
+
+          <button onclick="switchTab('tab-directorio')" id="btn-directorio" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:bg-slate-800/60 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-address-book"></i>
+            Directorio Completo (~110)
+          </button>
+
+          <button onclick="switchTab('tab-bajas')" id="btn-bajas" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:bg-slate-800/60 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-user-slash"></i>
+            Bajas / Salidas (10)
+          </button>
+
+          <button onclick="switchTab('tab-hitos')" id="btn-hitos" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:bg-slate-800/60 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-bullhorn"></i>
+            Hitos y Objetivos
+          </button>
+        </div>
+
+        <!-- Global Directory Search -->
+        <div class="relative w-full md:w-72">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input type="text" id="directory-search" oninput="handleSearch()" placeholder="Buscar nombre, fono o año..." 
+                 class="w-full bg-slate-900/80 border border-slate-700 focus:border-cyan-400 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none transition-all">
+        </div>
+      </div>
+
+      <!-- TAB CONTENT 1: CONFIRMADOS DIRECTOS -->
+      <div id="tab-confirmados" class="tab-content space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-purple-950/30 border border-purple-500/20 p-4 rounded-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300">
+              <i class="fa-solid fa-champagne-glasses text-lg"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-100 text-sm">Lista de Asistencia Confirmada en Chat</h4>
+              <p class="text-xs text-slate-300">8 Exalumnos han respondido directamente 'SÍ' en el chat del WhatsApp</p>
+            </div>
+          </div>
+          <button onclick="triggerConfetti()" class="px-3 py-1.5 bg-purple-600/40 hover:bg-purple-600/60 border border-purple-400/30 text-purple-200 text-xs rounded-lg font-medium transition-all flex items-center gap-1.5 self-end sm:self-auto">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> Celebrar Asistencia
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-800">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase tracking-wider text-[11px]">
+              <tr>
+                <th class="p-3 sm:p-4">#</th>
+                <th class="p-3 sm:p-4">Nombre / Chat</th>
+                <th class="p-3 sm:p-4">Contacto / Teléfono</th>
+                <th class="p-3 sm:p-4">Promoción</th>
+                <th class="p-3 sm:p-4">Fecha Confirmación</th>
+                <th class="p-3 sm:p-4 text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="table-confirmados-body" class="divide-y divide-slate-800 bg-slate-900/40">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT 2: DIRECTORIO COMPLETO -->
+      <div id="tab-directorio" class="tab-content hidden space-y-4">
+        <!-- Category Filter Pills -->
+        <div class="flex flex-wrap items-center gap-2" id="category-filter-pills">
+          <button onclick="filterCategory('ALL')" class="cat-pill px-3 py-1 bg-cyan-500/20 border border-cyan-400 text-cyan-300 rounded-lg text-xs font-semibold">
+            Todos (~110)
+          </button>
+          <button onclick="filterCategory('LIDERAZGO')" class="cat-pill px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-500 rounded-lg text-xs font-semibold">
+            Liderazgo & Coordinación
+          </button>
+          <button onclick="filterCategory('70s')" class="cat-pill px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-500 rounded-lg text-xs font-semibold">
+            Años 70 (1970-1979)
+          </button>
+          <button onclick="filterCategory('80s')" class="cat-pill px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-500 rounded-lg text-xs font-semibold">
+            Años 80 (1980-1989)
+          </button>
+          <button onclick="filterCategory('Jovenes')" class="cat-pill px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-500 rounded-lg text-xs font-semibold">
+            Jóvenes (2010+)
+          </button>
+          <button onclick="filterCategory('Contactos')" class="cat-pill px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-500 rounded-lg text-xs font-semibold">
+            Otros Contactos
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[500px] overflow-y-auto pr-1" id="directory-cards-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- TAB CONTENT 3: BAJAS Y SALIDAS -->
+      <div id="tab-bajas" class="tab-content hidden space-y-4">
+        <div class="bg-rose-950/20 border border-rose-500/20 p-4 rounded-2xl flex items-center gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xl"></i>
+          <div>
+            <h4 class="font-bold text-slate-100 text-sm">Registro de Ex-Integrantes (10 Salidas)</h4>
+            <p class="text-xs text-slate-400">Detalle de participantes que abandonaron el chat durante el periodo de análisis</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-800">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase tracking-wider text-[11px]">
+              <tr>
+                <th class="p-3 sm:p-4">#</th>
+                <th class="p-3 sm:p-4">Identificador / Nombre</th>
+                <th class="p-3 sm:p-4">Fecha Salida</th>
+                <th class="p-3 sm:p-4">Motivo / Contexto Detectado en Chat</th>
+              </tr>
+            </thead>
+            <tbody id="table-bajas-body" class="divide-y divide-slate-800 bg-slate-900/40">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT 4: HITOS Y OBJETIVOS -->
+      <div id="tab-hitos" class="tab-content hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Main Pillars -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h4 class="font-bold text-cyan-300 text-base flex items-center gap-2">
+              <i class="fa-solid fa-bullseye text-cyan-400"></i> Objetivos Fundacionales (CECOSAM)
+            </h4>
+            <ul class="space-y-3 text-xs sm:text-sm text-slate-300">
+              <li class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                <div>
+                  <strong class="text-white">Refundación del Centro de Exalumnos:</strong> Institucionalizar nuevamente CECOSAM con directiva oficial y estatutos.
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                <div>
+                  <strong class="text-white">Misa de Reencuentro & Cóctel:</strong> Evento del Sábado 26 de Septiembre de 2026 a las 18:00 hrs en el colegio.
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                <div>
+                  <strong class="text-white">Censo 2026:</strong> Formulario de catastro para consolidar la base de datos de exalumnos por generaciones.
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+                <div>
+                  <strong class="text-white">Uso del Gimnasio:</strong> Espacio deportivo semanal todos los viernes de 19:30 a 21:00 hrs.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Key Event Timeline -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h4 class="font-bold text-purple-300 text-base flex items-center gap-2">
+              <i class="fa-solid fa-timeline text-purple-400"></i> Hitos de Dinámica en el Chat
+            </h4>
+            <div class="relative border-l-2 border-slate-700 pl-4 space-y-4 text-xs sm:text-sm">
+              <div class="relative">
+                <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
+                <div class="font-bold text-cyan-300">09 al 11 de Septiembre</div>
+                <p class="text-slate-300">Crecimiento acelerado por viralización de link en promociones jóvenes (2014, 2016, 2020).</p>
+              </div>
+
+              <div class="relative">
+                <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+                <div class="font-bold text-amber-300">11 de Septiembre</div>
+                <p class="text-slate-300">Debate en chat sobre saludos religiosos, generando reflexiones de tolerancia y la salida del P. Pablo Poblete Sj.</p>
+              </div>
+
+              <div class="relative">
+                <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                <div class="font-bold text-emerald-300">16 y 17 de Septiembre</div>
+                <p class="text-slate-300">Integración masiva de exalumnos mediante importación de archivos VCF previa a Fiestas Patrias.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="glass-card rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border-purple-500/30">
+      <div class="space-y-2 text-center md:text-left">
+        <span class="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-400/30 text-purple-300 text-xs font-semibold uppercase">
+          Simulador de Asistencia
+        </span>
+        <h3 class="text-xl sm:text-2xl font-bold text-white">¿Quieres calcular el quórum proyectado?</h3>
+        <p class="text-xs sm:text-sm text-slate-300 max-w-xl">
+          Combina los confirmados explícitos del chat con el factor de conversión del Formulario Google y la llegada de coordinadores regionales.
+        </p>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-700 p-4 rounded-2xl flex flex-col items-center gap-3 min-w-[260px]">
+        <div class="text-xs text-slate-400 font-semibold">Multiplicador Estimado</div>
+        <div class="flex items-center gap-4">
+          <button onclick="updateSimulator(-1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold flex items-center justify-center transition-all">-</button>
+          <span class="text-2xl font-black text-amber-300" id="sim-multiplier">1.8x</span>
+          <button onclick="updateSimulator(1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold flex items-center justify-center transition-all">+</button>
+        </div>
+        <div class="text-xs text-slate-300">
+          Proyección Total: <strong class="text-cyan-300 text-sm" id="sim-result">14 Personas</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-400 py-4">
+      <p>Dashboard de Análisis • Centro de Exalumnos Colegio San Mateo (CECOSAM) 2026</p>
+      <p class="mt-1 text-slate-400">Procesado con tecnología visual interactiva • Osorno</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // ==========================================
+    // DATA STORE
+    // ==========================================
+    const confirmadosData = [
+      { id: 1, nombre: "Luis Concha", contacto: "Contacto interno", promo: "Promoción 1977", fecha: "15/09/2026, 08:45" },
+      { id: 2, nombre: "Jorge Kutscher W.", contacto: "+56 9 9443 6896", promo: "Exalumno", fecha: "15/09/2026, 09:01" },
+      { id: 3, nombre: "Jaime Guzmán Valdeavellano", contacto: "+56 9 9101 4705", promo: "Egreso 1976", fecha: "15/09/2026, 13:57" },
+      { id: 4, nombre: "Fernando Peters", contacto: "Contacto directo", promo: "Exalumno", fecha: "16/09/2026, 10:57" },
+      { id: 5, nombre: "Jaime Levicán", contacto: "+56 9 5859 7081", promo: "Exalumno", fecha: "16/09/2026, 23:10" },
+      { id: 6, nombre: "Alberto Gómez", contacto: "Contacto directo", promo: "Promoción 1978", fecha: "17/09/2026, 19:24" },
+      { id: 7, nombre: "Participante no identificado 1", contacto: "+56 9 5306 3551", promo: "Voy a la reunión", fecha: "15/09/2026, 08:38" },
+      { id: 8, nombre: "Participante no identificado 2", contacto: "+56 9 9240 9735", promo: "Voy", fecha: "15/09/2026, 09:00" }
+    ];
+
+    const directorioData = [
+      // Liderazgo
+      { nombre: "Rodrigo Cárcamo", cat: "LIDERAZGO", detail: "Creador del grupo y coordinador principal CECOSAM", icon: "fa-crown", color: "text-amber-400" },
+      { nombre: "Catalina Vega", cat: "LIDERAZGO", detail: "Coordinadora y administradora base", icon: "fa-star", color: "text-purple-400" },
+      { nombre: "Luis Concha", cat: "LIDERAZGO", detail: "Promoción 1977 - Gestor de incorporaciones", icon: "fa-bullhorn", color: "text-cyan-400" },
+      { nombre: "Mauricio Negrete", cat: "LIDERAZGO", detail: "Gestor grupos deportivos y exdirectiva", icon: "fa-volleyball", color: "text-emerald-400" },
+      { nombre: "Lucho González", cat: "LIDERAZGO", detail: "Promoción 1975 - Exvicepresidente y colaborador", icon: "fa-award", color: "text-blue-400" },
+      { nombre: "Eduardo Caro", cat: "LIDERAZGO", detail: "Coordinador / Contacto Santiago Centro Norte", icon: "fa-location-dot", color: "text-rose-400" },
+
+      // Generaciones 1970 - 1979
+      { nombre: "Freddy Peter", cat: "70s", detail: "Promoción 1972", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Christian Hald Ramírez", cat: "70s", detail: "Egreso 1975 • +56 9 6182 6111", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Jaime Guzmán Valdeavellano", cat: "70s", detail: "Egreso 1976 • +56 9 9101 4705", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Helmuth", cat: "70s", detail: "Promoción 1976", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Miguel Castro", cat: "70s", detail: "Promoción 1977 • +56 9 7589 6406", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Ricardo Epple", cat: "70s", detail: "Promoción 1977", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Alberto Gómez", cat: "70s", detail: "Promoción 1978", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Héctor Subiabre", cat: "70s", detail: "Promoción 1979 • +56 9 7998 5512", icon: "fa-user-graduate", color: "text-cyan-300" },
+      { nombre: "Héctor Santibáñez", cat: "70s", detail: "Promoción 1979 • +56 9 4279 1959", icon: "fa-user-graduate", color: "text-cyan-300" },
+
+      // Generaciones 1980 - 1989
+      { nombre: "Rafael Tapia Vergara", cat: "80s", detail: "Promoción 1980 4°C • +56 9 3961 4731", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Diego Soto Márquez", cat: "80s", detail: "Promoción 1983", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Francisco Aravena", cat: "80s", detail: "Promoción 1984 • +56 9 0517 697", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Juan Christian Hott Rosas", cat: "80s", detail: "Egreso 1986 • +56 9 9642 1352", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Claudio Alvial / Avial", cat: "80s", detail: "Promoción 1986 • +56 9 6904 8075", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Erwin Moraga", cat: "80s", detail: "Generación 1987 • +56 9 6203 3701", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Fernando Peña", cat: "80s", detail: "Generación 1988 • +56 9 7520 8042", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Oscar Tassara", cat: "80s", detail: "Generación 1988 • +56 9 9679 1294", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Jaime Sotomayor Neculman", cat: "80s", detail: "Promoción 1988 • +56 9 9755 8018", icon: "fa-user-large", color: "text-purple-300" },
+      { nombre: "Carlos Manríquez", cat: "80s", detail: "Promoción 1988 • +56 9 9959 8271", icon: "fa-user-large", color: "text-purple-300" },
+
+      // Generaciones Jóvenes
+      { nombre: "Juan Sobarzo", cat: "Jovenes", detail: "Generación 2014 • +56 9 4908 8260", icon: "fa-graduation-cap", color: "text-emerald-300" },
+      { nombre: "Catalina Aravena", cat: "Jovenes", detail: "Generación 2016 • +56 9 8408 1615", icon: "fa-graduation-cap", color: "text-emerald-300" },
+      { nombre: "Paula / Pauli", cat: "Jovenes", detail: "Generación 2020 • +56 9 7191 0451", icon: "fa-graduation-cap", color: "text-emerald-300" },
+
+      // Otros Contactos Registrados (Muestra representativa)
+      { nombre: "Roberto Hadidas", cat: "Contactos", detail: "Exalumno / Integrante Activo", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Colegio San Mateo", cat: "Contactos", detail: "Perfil Institucional Compañía de Jesús", icon: "fa-school", color: "text-amber-300" },
+      { nombre: "Jaime Levicán", cat: "Contactos", detail: "+56 9 5859 7081", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Luis Atilio Vidal Muñoz", cat: "Contactos", detail: "Básquetbol Exalumnos", icon: "fa-basketball", color: "text-orange-400" },
+      { nombre: "Orfelio Martínez", cat: "Contactos", detail: "+56 9 3405 6986", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Sarabia EIRL CE6VJI", cat: "Contactos", detail: "+56 9 9100 2414", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Jorge Kutscher W.", cat: "Contactos", detail: "+56 9 9443 6896", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Mirko Vukusich Cabellos", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Byron Cea Llano", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "José Luis Charpentier", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Manuel / Guichaquilen", cat: "Contactos", detail: "+56 9 9289 5000", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Eduardo 'Lalo' Marín", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Patricio Contreras", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Eduardo Lagos Aichele", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Yerko Aliro Villanueva", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Francisco Del Río Mohr", cat: "Contactos", detail: "Exalumno", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Bárbara Ayres", cat: "Contactos", detail: "Exalumna", icon: "fa-user", color: "text-slate-400" },
+      { nombre: "Tania Prüssing", cat: "Contactos", detail: "Exalumna", icon: "fa-user", color: "text-slate-400" }
+    ];
+
+    const bajasData = [
+      { id: 1, iden: "+56 9 7600 1648", fecha: "07/08/2026", motivo: "Salida voluntaria." },
+      { id: 2, iden: "Daniel Santibáñez", fecha: "09/09/2026", motivo: "Salida inmediata tras ingresar al chat." },
+      { id: 3, iden: "Miguel", fecha: "11/09/2026", motivo: "Salida voluntaria." },
+      { id: 4, iden: "Pablo Poblete Sj", fecha: "11/09/2026", motivo: "Salida posterior a la controversia sobre mensajes religiosos." },
+      { id: 5, iden: "Nico", fecha: "14/09/2026", motivo: "Salida voluntaria." },
+      { id: 6, iden: "Víctor Santibáñez", fecha: "15/09/2026", motivo: "Salida voluntaria." },
+      { id: 7, iden: "Carlos Navarro", fecha: "16/09/2026", motivo: "Salida voluntaria tras ser ingresado." },
+      { id: 8, iden: "julio cesar", fecha: "16/09/2026", motivo: "Salida voluntaria." },
+      { id: 9, iden: "Trayén🦋", fecha: "17/09/2026", motivo: "Salida voluntaria." },
+      { id: 10, iden: "Daniel Cárcamo", fecha: "17/09/2026", motivo: "Salida voluntaria tras ser ingresado." }
+    ];
+
+    // ==========================================
+    // SPIDERWEB CANVAS ANIMATION
+    // ==========================================
+    const canvas = document.getElementById('spiderweb-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const particleCount = 65;
+    const maxDistance = 140;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.7;
+        this.vy = (Math.random() - 0.5) * 0.7;
+        this.radius = Math.random() * 2 + 1;
+        // Cyan & Purple color tones
+        this.color = Math.random() > 0.5 ? 'rgba(6, 182, 212, ' : 'rgba(168, 85, 247, ';
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + '0.8)';
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function animateSpiderweb() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < maxDistance) {
+            const alpha = (1 - dist / maxDistance) * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(147, 197, 253, ${alpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(animateSpiderweb);
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      initParticles();
+    });
+
+    // ==========================================
+    // COUNTDOWN TIMER TO SEPT 26, 2026 18:00
+    // ==========================================
+    function updateCountdown() {
+      const eventDate = new Date('2026-09-26T18:00:00-03:00').getTime();
+      const now = new Date().getTime();
+      const diff = eventDate - now;
+
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+        document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+        document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
+        document.getElementById('cd-secs').innerText = String(secs).padStart(2, '0');
+      } else {
+        document.getElementById('countdown-timer').innerHTML = `<span class="text-emerald-400 font-bold">¡El evento está en desarrollo!</span>`;
+      }
+    }
+
+    // ==========================================
+    // CHART.JS INITIALIZATIONS
+    // ==========================================
+    function initCharts() {
+      // Chart 1: Generational Distribution
+      const ctxGen = document.getElementById('generationsChart').getContext('2d');
+      new Chart(ctxGen, {
+        type: 'doughnut',
+        data: {
+          labels: ['Años 70s', 'Años 80s', 'Jóvenes (2010+)', 'Liderazgo/Coord'],
+          datasets: [{
+            data: [9, 10, 3, 6],
+            backgroundColor: [
+              'rgba(6, 182, 212, 0.85)',
+              'rgba(168, 85, 247, 0.85)',
+              'rgba(16, 185, 129, 0.85)',
+              'rgba(245, 158, 11, 0.85)'
+            ],
+            borderColor: 'rgba(15, 23, 42, 1)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#cbd5e1', font: { size: 11 } }
+            }
+          }
+        }
+      });
+
+      // Chart 2: Attendance Status
+      const ctxAtt = document.getElementById('attendanceChart').getContext('2d');
+      new Chart(ctxAtt, {
+        type: 'pie',
+        data: {
+          labels: ['Confirmados Directos Chat', 'Estimación Form/Email', 'Sin Confirmar / Pendientes'],
+          datasets: [{
+            data: [8, 5, 97],
+            backgroundColor: [
+              'rgba(168, 85, 247, 0.9)',
+              'rgba(6, 182, 212, 0.8)',
+              'rgba(51, 65, 85, 0.6)'
+            ],
+            borderColor: 'rgba(15, 23, 42, 1)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#cbd5e1', font: { size: 11 } }
+            }
+          }
+        }
+      });
+
+      // Chart 3: Activity Dynamics Timeline
+      const ctxAct = document.getElementById('activityChart').getContext('2d');
+      new Chart(ctxAct, {
+        type: 'bar',
+        data: {
+          labels: ['07 Sept', '09-11 Sept', '11-14 Sept', '15-16 Sept', '17 Sept'],
+          datasets: [
+            {
+              label: 'Nuevas Incorporaciones',
+              data: [2, 25, 8, 45, 30],
+              backgroundColor: 'rgba(6, 182, 212, 0.85)',
+              borderRadius: 6
+            },
+            {
+              label: 'Salidas del Chat',
+              data: [1, 2, 2, 3, 2],
+              backgroundColor: 'rgba(244, 63, 94, 0.75)',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#cbd5e1', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // RENDER DATA TABLES & CARDS
+    // ==========================================
+    function renderConfirmadosTable(data) {
+      const tbody = document.getElementById('table-confirmados-body');
+      tbody.innerHTML = '';
+      data.forEach((item) => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-800/50 transition-all">
+            <td class="p-3 sm:p-4 font-bold text-purple-300">${item.id}</td>
+            <td class="p-3 sm:p-4 font-semibold text-slate-100">${item.nombre}</td>
+            <td class="p-3 sm:p-4 text-slate-300">${item.contacto}</td>
+            <td class="p-3 sm:p-4"><span class="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-xs font-medium">${item.promo}</span></td>
+            <td class="p-3 sm:p-4 text-slate-400 text-xs">${item.fecha}</td>
+            <td class="p-3 sm:p-4 text-center">
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold">
+                <i class="fa-solid fa-check text-[10px]"></i> Confirmado
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderDirectorioCards(data) {
+      const container = document.getElementById('directory-cards-container');
+      container.innerHTML = '';
+      if (data.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 text-xs">No se encontraron integrantes con este filtro.</div>`;
+        return;
+      }
+      data.forEach((item) => {
+        container.innerHTML += `
+          <div class="bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 p-3.5 rounded-2xl flex items-center gap-3 transition-all">
+            <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center shrink-0">
+              <i class="fa-solid ${item.icon} ${item.color}"></i>
+            </div>
+            <div class="overflow-hidden">
+              <h5 class="font-bold text-slate-100 text-xs sm:text-sm truncate">${item.nombre}</h5>
+              <p class="text-[11px] text-slate-400 truncate">${item.detail}</p>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderBajasTable(data) {
+      const tbody = document.getElementById('table-bajas-body');
+      tbody.innerHTML = '';
+      data.forEach((item) => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-800/50 transition-all">
+            <td class="p-3 sm:p-4 font-bold text-rose-400">${item.id}</td>
+            <td class="p-3 sm:p-4 font-semibold text-slate-200">${item.iden}</td>
+            <td class="p-3 sm:p-4 text-slate-400 text-xs">${item.fecha}</td>
+            <td class="p-3 sm:p-4 text-slate-300 text-xs">${item.motivo}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // ==========================================
+    // TABS & FILTERS LOGIC
+    // ==========================================
+    let currentCategory = 'ALL';
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-gradient-to-r', 'from-cyan-500', 'to-blue-600', 'text-white', 'shadow-lg', 'shadow-cyan-500/20');
+        btn.classList.add('text-slate-300');
+      });
+
+      const activeBtnMap = {
+        'tab-confirmados': 'btn-confirmados',
+        'tab-directorio': 'btn-directorio',
+        'tab-bajas': 'btn-bajas',
+        'tab-hitos': 'btn-hitos'
+      };
+
+      const activeBtn = document.getElementById(activeBtnMap[tabId]);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-300');
+        activeBtn.classList.add('bg-gradient-to-r', 'from-cyan-500', 'to-blue-600', 'text-white', 'shadow-lg', 'shadow-cyan-500/20');
+      }
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.classList.remove('bg-cyan-500/20', 'border-cyan-400', 'text-cyan-300');
+        btn.classList.add('bg-slate-800', 'border-slate-700', 'text-slate-300');
+      });
+      event.currentTarget.classList.remove('bg-slate-800', 'border-slate-700', 'text-slate-300');
+      event.currentTarget.classList.add('bg-cyan-500/20', 'border-cyan-400', 'text-cyan-300');
+
+      applyDirectoryFilters();
+    }
+
+    function handleSearch() {
+      applyDirectoryFilters();
+    }
+
+    function applyDirectoryFilters() {
+      const query = document.getElementById('directory-search').value.toLowerCase().trim();
+
+      // Filter confirmados
+      const filteredConfirmados = confirmadosData.filter(item => 
+        item.nombre.toLowerCase().includes(query) || 
+        item.contacto.toLowerCase().includes(query) || 
+        item.promo.toLowerCase().includes(query)
+      );
+      renderConfirmadosTable(filteredConfirmados);
+
+      // Filter directorio
+      const filteredDirectorio = directorioData.filter(item => {
+        const matchesCategory = (currentCategory === 'ALL') || (item.cat === currentCategory);
+        const matchesQuery = item.nombre.toLowerCase().includes(query) || item.detail.toLowerCase().includes(query);
+        return matchesCategory && matchesQuery;
+      });
+      renderDirectorioCards(filteredDirectorio);
+
+      // Filter bajas
+      const filteredBajas = bajasData.filter(item => 
+        item.iden.toLowerCase().includes(query) || 
+        item.motivo.toLowerCase().includes(query)
+      );
+      renderBajasTable(filteredBajas);
+    }
+
+    // ==========================================
+    // SIMULATOR LOGIC
+    // ==========================================
+    let simFactor = 1.8;
+    function updateSimulator(step) {
+      simFactor += step * 0.2;
+      if (simFactor < 1.0) simFactor = 1.0;
+      if (simFactor > 3.0) simFactor = 3.0;
+      
+      document.getElementById('sim-multiplier').innerText = simFactor.toFixed(1) + 'x';
+      const baseConfirmados = 8;
+      const totalEst = Math.round(baseConfirmados * simFactor);
+      document.getElementById('sim-result').innerText = totalEst + ' Personas';
+    }
+
+    // ==========================================
+    // CONFETTI CELEBRATION
+    // ==========================================
+    const jsConfetti = new JSConfetti();
+    function triggerConfetti() {
+      jsConfetti.addConfetti({
+        emojis: ['🎓', '🎉', '🥂', '✨', '🐺'],
+        emojiSize: 32,
+        confettiNumber: 40,
+      });
+    }
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
+    window.onload = function() {
+      resizeCanvas();
+      initParticles();
+      animateSpiderweb();
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+
+      initCharts();
+
+      renderConfirmadosTable(confirmadosData);
+      renderDirectorioCards(directorioData);
+      renderBajasTable(bajasData);
+    };
+  </script>
+</body>
+</html>
